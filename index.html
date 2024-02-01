@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Timer App</title>
+    <style>
+        #timer {
+            font-size: 2em;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="timer">Press Start to Begin</div>
+    <button onclick="startTimer()">Start</button>
+
+    <script>
+        let countdown;
+        let totalTime;
+
+        function startTimer() {
+            speakCountdown("Start exercise in", 3);
+            displayText("Start exercise: 3, 2, 1...");
+            setTimeout(() => {
+                startWorkout();
+            }, 3000);
+        }
+
+        function startWorkout() {
+            totalTime = 45;
+            countdown = setInterval(updateTimer, 1000);
+            updateTimer(); // Initial call to update the timer immediately
+        }
+
+        function startRest() {
+            clearInterval(countdown);
+            speakCountdown("Rest in", 3);
+            displayText("Rest: ");
+            setTimeout(() => {
+                startNextExercise();
+            }, 12000);
+        }
+
+        function startNextExercise() {
+            speakCountdown("Start exercise in", 3);
+            totalTime = 45;
+            countdown = setInterval(updateTimer, 1000);
+            updateTimer(); // Initial call to update the timer immediately
+        }
+
+        function updateTimer() {
+            displayText(totalTime);
+            totalTime--;
+
+            if (totalTime < 0) {
+                if (displayText("Rest: ", true)) {
+                    startRest();
+                }
+            }
+        }
+
+        function displayText(text, reset = false) {
+            const timerElement = document.getElementById("timer");
+
+            if (reset) {
+                timerElement.textContent = "Press Start to Begin";
+                return true;
+            }
+
+            timerElement.textContent = text;
+            return false;
+        }
+
+        function speakCountdown(message, seconds) {
+            let countdownMessage = message;
+            for (let i = seconds; i > 0; i--) {
+                countdownMessage += ` ${i},`;
+            }
+            countdownMessage = countdownMessage.slice(0, -1); // Remove the trailing comma
+            speak(countdownMessage);
+        }
+
+        function speak(message) {
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = message;
+            window.speechSynthesis.speak(speech);
+        }
+    </script>
+
+</body>
+
+</html>
