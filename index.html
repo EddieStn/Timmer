@@ -4,37 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Workout Timer App</title>
-    <style>
-        #timer {
-            font-size: 2em;
-            text-align: center;
-            margin-top: 50px;
-        }
-    </style>
 </head>
 
 <body>
 
+    <h1>Workout Timer</h1>
+    <h3>10 Alternating Intervals</h3>
+    <h3>45s Excercise with 15s Rest</h3>
     <div id="timer">Press Start to Begin</div>
-    <button onclick="startTimer()">Start</button>
+    <div id="totalTime">Total Time: 0 seconds</div>
+    <button onclick="toggleTimer()">Start</button>
 
     <script>
         let countdown;
         let totalTime;
+        let elapsedTime = 0;
+        let isPaused = true;
 
-        function startTimer() {
-            speakCountdown("Start exercise in", 3);
-            displayText("Start exercise: 3, 2, 1...");
-            setTimeout(() => {
+        function toggleTimer() {
+            if (isPaused) {
+                isPaused = false;
                 startWorkout();
-            }, 3000);
+            } else {
+                isPaused = true;
+                clearInterval(countdown);
+                displayText("Paused");
+            }
+
+            updateButtonLabel();
         }
 
         function startWorkout() {
-            totalTime = 45;
-            countdown = setInterval(updateTimer, 1000);
-            updateTimer(); // Initial call to update the timer immediately
+            if (!countdown) {
+                speakCountdown("Start exercise in", 3);
+                displayText("Start exercise: 3, 2, 1...");
+                setTimeout(() => {
+                    totalTime = 45; // Initial workout time
+                    countdown = setInterval(updateTimer, 1000);
+                    updateTimer(); // Initial call to update the timer immediately
+                }, 3000);
+            } else {
+                resumeTimer();
+            }
         }
 
         function startRest() {
@@ -48,20 +61,49 @@
 
         function startNextExercise() {
             speakCountdown("Start exercise in", 3);
-            totalTime = 45;
+            totalTime = 45; // Reset workout time
             countdown = setInterval(updateTimer, 1000);
             updateTimer(); // Initial call to update the timer immediately
         }
 
         function updateTimer() {
-            displayText(totalTime);
-            totalTime--;
+            if (!isPaused) {
+                displayText(totalTime);
+                totalTime--;
+                elapsedTime++;
 
-            if (totalTime < 0) {
-                if (displayText("Rest: ", true)) {
-                    startRest();
+                if (totalTime < 0) {
+                    if (displayText("Rest: ", true)) {
+                        startRest();
+                    }
                 }
             }
+
+            if (totalTime < -600) {
+                // Maximum of 10 minutes reached
+                clearInterval(countdown);
+                displayText("Maximum time reached");
+                isPaused = true;
+                updateButtonLabel();
+            }
+
+            updateTotalTime();
+        }
+
+        function resumeTimer() {
+            displayText("Resumed");
+            countdown = setInterval(updateTimer, 1000);
+            updateTimer(); // Initial call to update the timer immediately
+        }
+
+        function updateButtonLabel() {
+            const button = document.querySelector('button');
+            button.textContent = isPaused ? 'Start' : 'Pause';
+        }
+
+        function updateTotalTime() {
+            const totalElement = document.getElementById('totalTime');
+            totalElement.textContent = `Total Time: ${elapsedTime} seconds`;
         }
 
         function displayText(text, reset = false) {
